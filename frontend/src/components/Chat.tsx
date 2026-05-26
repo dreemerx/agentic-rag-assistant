@@ -21,6 +21,12 @@ export function Chat() {
   const [providers, setProviders] = useState<string[]>([]);
   const [currentProvider, setCurrentProvider] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const streamingContentRef = useRef("");
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    streamingContentRef.current = streamingContent;
+  }, [streamingContent]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -35,43 +41,45 @@ export function Chat() {
     });
   }, []);
 
-  const handleWSMessage = useCallback(
-    (msg: WSMessage) => {
-      switch (msg.type) {
-        case "status":
-          if (msg.message) {
-            setStatuses((prev) => [...prev, msg.message!]);
-          }
-          break;
-        case "token":
-          if (msg.content) {
-            setStreamingContent((prev) => prev + msg.content);
-          }
-          break;
-        case "done":
-          if (streamingContent || msg.content) {
+  const handleWSMessage = useCallback((msg: WSMessage) => {
+    switch (msg.type) {
+      case "status":
+        if (msg.message) {
+          setStatuses((prev) => [...prev, msg.message!]);
+        }
+        break;
+      case "token":
+        if (msg.content) {
+          setStreamingContent((prev) => prev + msg.content);
+        }
+        break;
+      case "done":
+        {
+          const finalContent = streamingContentRef.current || msg.content || "";
+          if (finalContent) {
             setMessages((prev) => [
               ...prev,
-              { role: "assistant", content: streamingContent || msg.content || "" },
+              { role: "assistant", content: finalContent },
             ]);
           }
           setStreamingContent("");
+          streamingContentRef.current = "";
           setStatuses([]);
           setIsStreaming(false);
-          break;
-        case "error":
-          setMessages((prev) => [
-            ...prev,
-            { role: "assistant", content: `Error: ${msg.message}` },
-          ]);
-          setStreamingContent("");
-          setStatuses([]);
-          setIsStreaming(false);
-          break;
-      }
-    },
-    [streamingContent]
-  );
+        }
+        break;
+      case "error":
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: `Error: ${msg.message}` },
+        ]);
+        setStreamingContent("");
+        streamingContentRef.current = "";
+        setStatuses([]);
+        setIsStreaming(false);
+        break;
+    }
+  }, []);
 
   const { isConnected, send } = useWebSocket({
     url: endpoints.wsChat,
@@ -80,13 +88,12 @@ export function Chat() {
 
   const handleSend = useCallback(
     (message: string) => {
-      // Add user message
       setMessages((prev) => [...prev, { role: "user", content: message }]);
       setIsStreaming(true);
       setStreamingContent("");
+      streamingContentRef.current = "";
       setStatuses([]);
 
-      // Send via WebSocket
       send({
         type: "chat",
         message,
@@ -99,6 +106,7 @@ export function Chat() {
   const handleReset = useCallback(() => {
     setMessages([]);
     setStreamingContent("");
+    streamingContentRef.current = "";
     setStatuses([]);
     setIsStreaming(false);
     send({ type: "reset", session_id: "default" });
