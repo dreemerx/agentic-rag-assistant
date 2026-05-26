@@ -23,11 +23,6 @@ from backend.memory.manager import MemoryManager
 from backend.workflow.graph import agent_graph
 from backend.services.provider_registry import ProviderRegistry
 
-# Ensure tools are imported and registered
-import backend.tools.retrieval_tool  # noqa: F401
-import backend.tools.web_search_tool  # noqa: F401
-import backend.tools.calculator_tool  # noqa: F401
-
 router = APIRouter(tags=["websocket"])
 
 # Session store
