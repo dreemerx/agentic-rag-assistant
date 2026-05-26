@@ -35,9 +35,16 @@ class WebSearchTool(BaseTool):
     async def run(self, query: str, max_results: int = 5, **kwargs) -> ToolResult:
         try:
             from ddgs import DDGS
+            from datetime import datetime
+
+            # Add current date to query if it mentions "today" or "recent"
+            search_query = query
+            today = datetime.now().strftime("%Y-%m-%d")
+            if any(word in query.lower() for word in ["today", "recent", "latest", "recently", "今天", "近日", "最新"]):
+                search_query = f"{query} {today}"
 
             results = []
-            for r in DDGS().text(query, max_results=max_results):
+            for r in DDGS().text(search_query, max_results=max_results):
                 results.append({
                     "title": r.get("title", ""),
                     "snippet": r.get("body", ""),

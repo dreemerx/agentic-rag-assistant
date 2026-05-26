@@ -56,8 +56,14 @@ async def agent_chat(request: AgentRequest):
     memory.add_message(ChatMessage(role=Role.USER, content=request.message))
 
     # Build context for the workflow
+    from datetime import datetime
+    today = datetime.now().strftime("%Y-%m-%d")
     context_messages = memory.build_context(
-        system_prompt="You are a helpful AI assistant with access to a knowledge base and tools."
+        system_prompt=(
+            f"You are a helpful AI assistant with access to a knowledge base and tools. "
+            f"Today's date is {today}. When the user asks about 'today' or recent events, "
+            f"use this date to understand what they mean."
+        )
     )
 
     async def event_stream():

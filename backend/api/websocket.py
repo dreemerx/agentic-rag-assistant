@@ -99,8 +99,14 @@ async def _handle_chat(ws: WebSocket, data: dict) -> None:
     memory.add_message(ChatMessage(role=Role.USER, content=message))
 
     # Build context
+    from datetime import datetime
+    today = datetime.now().strftime("%Y-%m-%d")
     context_messages = memory.build_context(
-        system_prompt="You are a helpful AI assistant with access to a knowledge base and tools."
+        system_prompt=(
+            f"You are a helpful AI assistant with access to a knowledge base and tools. "
+            f"Today's date is {today}. When the user asks about 'today' or recent events, "
+            f"use this date to understand what they mean."
+        )
     )
 
     try:
