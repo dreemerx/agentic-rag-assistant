@@ -1,0 +1,32 @@
+# === Core Framework ===
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-dotenv==1.0.1
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# === Async HTTP ===
+httpx==0.28.1
+aiofiles==24.1.0
+
+# === LLM SDK (OpenAI-compatible) ===
+openai==1.58.1
+
+# === RAG Pipeline (Phase 2) ===
+chromadb==0.5.23
+sentence-transformers==3.3.1
+langchain-text-splitters==0.3.4
+pypdf==5.1.0
+python-docx==1.1.2
+
+# === Agent Framework (Phase 3) ===
+langgraph==0.2.60
+
+# === Tools ===
+duckduckgo-search==7.3.0
+
+# === WebSocket ===
+websockets==14.1
+
+# === Utilities ===
+python-multipart==0.0.20
