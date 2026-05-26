@@ -26,9 +26,9 @@ An industrial-grade AI Agent system with RAG knowledge base, tool calling, memor
 │  ┌──────────────────────────▼───────────────────────────────┐  │
 │  │              LangGraph Agent Workflow                     │  │
 │  │                                                          │  │
-│  │   START → Router → ┬─ Retrieval ──→ Plan ──→ Generate    │  │
-│  │                    ├─ Tool ───────→ Plan ──→ Generate     │  │
-│  │                    └─ Direct ─────────────→ Generate      │  │
+│  │   START → Router → ┬─ Retrieval ──→ Planner → Generate   │  │
+│  │                    ├─ Tool ───────→ Planner → Generate    │  │
+│  │                    └─ Direct ──────────────→ Generate     │  │
 │  │                                              │           │  │
 │  │                                         Reflect ──→ END   │  │
 │  └──────────────────────────────────────────────────────────┘  │
@@ -49,7 +49,7 @@ An industrial-grade AI Agent system with RAG knowledge base, tool calling, memor
 ## Features
 
 - **RAG Pipeline** — Upload PDF, DOCX, TXT, Markdown → chunk → embed → retrieve with citations
-- **Agent Workflow** — LangGraph state machine: Router → Retrieval/Tool → Plan → Generate → Reflect
+- **Agent Workflow** — LangGraph state machine: Router → Retrieval/Tool → Planner → Generate → Reflect
 - **Tool Calling** — Retrieval, Web Search (DuckDuckGo), Calculator (safe AST eval)
 - **Memory** — Short-term (sliding window) + Summary (LLM-compressed)
 - **Streaming** — Token-by-token output via WebSocket and SSE
@@ -60,9 +60,9 @@ An industrial-grade AI Agent system with RAG knowledge base, tool calling, memor
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Python 3.11+, FastAPI, asyncio, WebSocket |
+| Backend | Python 3.11, FastAPI, asyncio, WebSocket |
 | Agent | LangGraph (StateGraph) |
-| RAG | ChromaDB, BGE-M3, BGE-Reranker |
+| RAG | ChromaDB, bge-small-zh-v1.5, ms-marco-MiniLM-L-6-v2 |
 | LLM | OpenAI-compatible (SiliconFlow, Qwen, Ollama) |
 | Frontend | Next.js 15, TypeScript, Tailwind CSS |
 | Deploy | Docker, Docker Compose |
@@ -87,15 +87,15 @@ backend/
  ├── rag/
  │   ├── loaders.py               # BaseLoader + PDF/TXT/DOCX/MD
  │   ├── splitter.py              # RecursiveCharacterTextSplitter
- │   ├── embedding.py             # BGE-M3 embedding service
+ │   ├── embedding.py             # bge-small-zh-v1.5 embedding service
  │   ├── vectorstore.py           # ChromaDB wrapper
- │   ├── reranker.py              # BGE-Reranker cross-encoder
+ │   ├── reranker.py              # ms-marco-MiniLM cross-encoder
  │   └── retriever.py             # Search + rerank orchestrator
  ├── tools/
  │   ├── base.py                  # BaseTool ABC
  │   ├── registry.py              # ToolRegistry
  │   ├── retrieval_tool.py        # RAG knowledge base search
- │   ├── web_search_tool.py       # DuckDuckGo search
+ │   ├── web_search_tool.py       # DuckDuckGo search (ddgs)
  │   └── calculator_tool.py       # Safe math evaluation
  ├── memory/
  │   └── manager.py               # MemoryManager (short-term + summary)
@@ -131,14 +131,14 @@ frontend/
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.11 (required — 3.13 has compatibility issues with sentence-transformers)
 - Node.js 18+
 - At least one LLM API key (SiliconFlow recommended — free tier available)
 
 ### 1. Clone and configure
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/dreemerx/agentic-rag-assistant.git
 cd agentic-rag-assistant
 cp .env.example .env
 # Edit .env — add your API key
@@ -147,11 +147,15 @@ cp .env.example .env
 ### 2. Start backend
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+python -m venv .venv
+source .venv/Scripts/activate  # Linux: source .venv/bin/activate
 pip install -r requirements.txt
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Set Hugging Face mirror (for China users)
+export HF_ENDPOINT=https://hf-mirror.com
+
+# Start server
+PYTHONPATH=. uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### 3. Start frontend
@@ -186,7 +190,7 @@ docker compose up --build
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/v1/rag/upload` | Upload document |
+| `POST` | `/api/v1/rag/upload` | Upload document (admin) |
 | `POST` | `/api/v1/rag/query` | Search knowledge base |
 | `GET` | `/api/v1/rag/files` | List indexed files |
 | `DELETE` | `/api/v1/rag/files/{id}` | Delete file |
@@ -210,8 +214,16 @@ docker compose up --build
 | `OLLAMA_BASE_URL` | No | `http://localhost:11434/v1` | Ollama endpoint |
 | `HOST` | No | `0.0.0.0` | Server host |
 | `PORT` | No | `8000` | Server port |
+| `HF_ENDPOINT` | No | — | Hugging Face mirror (e.g. `https://hf-mirror.com`) |
 
 *At least one provider API key is required.
+
+## Notes
+
+- **Python 3.11 required** — Python 3.13 causes segfault with sentence-transformers
+- **Hugging Face mirror** — Set `HF_ENDPOINT=https://hf-mirror.com` if you're in China
+- **Memory usage** — Embedding model (~90MB) loads on first request; allow a few seconds
+- **RAG upload** — Admin-only operation via API, not exposed in frontend chat UI
 
 ## Deployment
 
@@ -221,7 +233,7 @@ docker compose up --build
 2. Connect repo to Railway or Render
 3. Set environment variables from `.env`
 4. Set build command: `pip install -r requirements.txt`
-5. Set start command: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Set start command: `PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
 
 ### Frontend (Vercel)
 
