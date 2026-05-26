@@ -17,7 +17,7 @@ class EmbeddingService:
     """Local embedding service using sentence-transformers."""
 
     def __init__(self, model_name: str | None = None):
-        self.model_name = model_name or "BAAI/bge-m3"
+        self.model_name = model_name or "BAAI/bge-small-zh-v1.5"
         self._model: SentenceTransformer | None = None
 
     def _get_model(self) -> SentenceTransformer:

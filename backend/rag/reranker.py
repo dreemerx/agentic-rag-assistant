@@ -21,7 +21,7 @@ class RerankerService:
     """Local reranker using cross-encoder model."""
 
     def __init__(self, model_name: str | None = None):
-        self.model_name = model_name or "BAAI/bge-reranker-v2-m3"
+        self.model_name = model_name or "cross-encoder/ms-marco-MiniLM-L-6-v2"
         self._model: CrossEncoder | None = None
 
     def _get_model(self) -> CrossEncoder:

@@ -61,7 +61,7 @@ def build_agent_graph() -> StateGraph:
     graph.add_node("router", router_node)
     graph.add_node("retrieve", retrieval_node)
     graph.add_node("tool", tool_node)
-    graph.add_node("plan", plan_node)
+    graph.add_node("planner", plan_node)
     graph.add_node("generate", generate_node)
     graph.add_node("reflect", reflect_node)
 
@@ -80,9 +80,9 @@ def build_agent_graph() -> StateGraph:
     )
 
     # Linear edges
-    graph.add_edge("retrieve", "plan")
-    graph.add_edge("tool", "plan")
-    graph.add_edge("plan", "generate")
+    graph.add_edge("retrieve", "planner")
+    graph.add_edge("tool", "planner")
+    graph.add_edge("planner", "generate")
     graph.add_edge("generate", "reflect")
 
     # Conditional edge from reflect (loop or end)
