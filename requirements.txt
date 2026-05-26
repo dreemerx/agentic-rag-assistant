@@ -23,7 +23,7 @@ python-docx==1.1.2
 langgraph==0.2.60
 
 # === Tools ===
-duckduckgo-search==7.3.0
+ddgs>=9.0.0
 
 # === WebSocket ===
 websockets==14.1

@@ -34,16 +34,15 @@ class WebSearchTool(BaseTool):
 
     async def run(self, query: str, max_results: int = 5, **kwargs) -> ToolResult:
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
 
             results = []
-            with DDGS() as ddgs:
-                for r in ddgs.text(query, max_results=max_results):
-                    results.append({
-                        "title": r.get("title", ""),
-                        "snippet": r.get("body", ""),
-                        "url": r.get("href", ""),
-                    })
+            for r in DDGS().text(query, max_results=max_results):
+                results.append({
+                    "title": r.get("title", ""),
+                    "snippet": r.get("body", ""),
+                    "url": r.get("href", ""),
+                })
 
             return ToolResult(
                 success=True,
