@@ -24,7 +24,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Ask me anything..."
+        placeholder="输入你的问题..."
         disabled={disabled}
         className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600
                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
@@ -40,7 +40,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
                    disabled:opacity-50 disabled:cursor-not-allowed
                    transition-colors"
       >
-        Send
+        发送
       </button>
     </form>
   );

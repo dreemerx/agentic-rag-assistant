@@ -71,7 +71,7 @@ export function Chat() {
       case "error":
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: `Error: ${msg.message}` },
+          { role: "assistant", content: `错误：${msg.message}` },
         ]);
         setStreamingContent("");
         streamingContentRef.current = "";
@@ -118,7 +118,7 @@ export function Chat() {
       <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Agentic RAG Assistant
+            AI 智能助手
           </h1>
           <span
             className={`inline-block w-2 h-2 rounded-full ${
@@ -140,7 +140,7 @@ export function Chat() {
                        text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800
                        transition-colors"
           >
-            Reset
+            清空对话
           </button>
         </div>
       </div>
@@ -152,8 +152,7 @@ export function Chat() {
             <div className="text-center text-gray-400">
               <div className="text-4xl mb-3">AI</div>
               <p className="text-sm">
-                Ask me anything. I can search documents, calculate, and search
-                the web.
+                有什么可以帮你的？我可以搜索文档、计算、联网搜索。
               </p>
             </div>
           </div>

@@ -21,7 +21,7 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         {!isUser && (
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              AI Assistant
+              AI 助手
             </span>
           </div>
         )}
